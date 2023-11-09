@@ -1,9 +1,13 @@
+import 'package:d_map/api/api.dart';
+import 'package:d_map/model/RawRecord.dart';
 import 'package:d_map/util/myGeolocator.dart';
 import 'package:d_map/util/style.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:kakao_map_plugin/kakao_map_plugin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../model/Record.dart';
 
 class MyKakaoMap extends StatefulWidget {
   const MyKakaoMap({super.key});
@@ -26,29 +30,18 @@ class _MyKakaoMapState extends State<MyKakaoMap> {
           return KakaoMap(
             onMapCreated: ((controller) async {
               mapController = controller;
-              final SharedPreferences prefs =
-                  await SharedPreferences.getInstance();
-              final List<String>? records = prefs.getStringList('records');
-              if (records != null) {
-                for (int i = 0; i < records.length; i++) {
-                  markers.add(
-                    Marker(
-                      markerId: UniqueKey().toString(),
-                      latLng: LatLng(
-                        double.parse(records[i].split(" ")[0]),
-                        double.parse(records[i].split(" ")[1]),
-                      ),
+              List<RawRecord> records = await Api().getRawRecords();
+              for (int i = 0; i < records.length; i++) {
+                markers.add(
+                  Marker(
+                    markerId: UniqueKey().toString(),
+                    latLng: LatLng(
+                      double.parse(records[i].latitude),
+                      double.parse(records[i].longitude),
                     ),
-                  );
-                }
+                  ),
+                );
               }
-
-              markers.add(
-                Marker(
-                  markerId: UniqueKey().toString(),
-                  latLng: await mapController.getCenter(),
-                ),
-              );
 
               setState(() {});
             }),
