@@ -74,9 +74,9 @@ class _MyKakaoMapState extends State<MyKakaoMap> {
       },
     );
   }
+}
 
-  Future<LatLng> getLocation() async {
-    Position position = await determinePosition();
-    return LatLng(position.latitude, position.longitude);
-  }
+Future<LatLng> getLocation() async {
+  Position position = await determinePosition();
+  return LatLng(position.latitude, position.longitude);
 }

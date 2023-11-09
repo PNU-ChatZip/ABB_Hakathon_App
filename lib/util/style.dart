@@ -6,13 +6,11 @@ class ColorStyles {
 
 class ButtonStyles {
   static ButtonStyle mainButtonStyle = ButtonStyle(
-    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-      RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(5.0),
-      ),
+    shape: MaterialStateProperty.all<CircleBorder>(
+      const CircleBorder(),
     ),
     padding: MaterialStateProperty.all<EdgeInsets>(
-      const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
+      const EdgeInsets.all(25),
     ),
     textStyle: MaterialStateProperty.all<TextStyle>(
       const TextStyle(fontSize: 16), // Set the font size
@@ -21,7 +19,7 @@ class ButtonStyles {
       ColorStyles.mainColor,
     ),
     backgroundColor: MaterialStateProperty.all<Color>(
-      Colors.white,
+      ColorStyles.mainColor,
     ),
     side: MaterialStateProperty.all<BorderSide>(
       const BorderSide(

@@ -1,6 +1,10 @@
+import 'package:d_map/api/api.dart';
 import 'package:d_map/util/style.dart';
 import 'package:d_map/widget/MyKakaoMap.dart';
+import 'package:dash_bubble/dash_bubble.dart';
 import 'package:flutter/material.dart';
+
+import '../service/notification.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -10,6 +14,13 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
+  final NotificationManager notificationManager = NotificationManager();
+  @override
+  void initState() {
+    super.initState();
+    notificationManager.initNotifications();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -17,7 +28,7 @@ class _MainViewState extends State<MainView> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         SizedBox(
-          height: 30,
+          height: 80,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.max,
@@ -27,14 +38,38 @@ class _MainViewState extends State<MainView> {
               ),
               const Center(
                 child: Text(
-                  "화면 오버레이",
+                  "Overlay",
                   style: TextStyle(fontSize: 18),
                 ),
               ),
               IconButton(
                 padding: EdgeInsets.zero,
                 alignment: Alignment.center,
-                onPressed: () {},
+                onPressed: () async {
+                  if (await DashBubble.instance.hasOverlayPermission()) {
+                    DashBubble.instance.startBubble(
+                      bubbleOptions: BubbleOptions(
+                        bubbleIcon: "porthole",
+                        bubbleSize: 200,
+                        distanceToClose: 100,
+                        enableClose: false,
+                        startLocationX: 200,
+                        startLocationY: 450,
+                      ),
+                      onTap: () {
+                        print("click bubble");
+                        Api().sendCurrentLocation("포트홀");
+                        notificationManager.showNotification();
+                      },
+                      notificationOptions: NotificationOptions(
+                        title: "D-MAP",
+                        body: "D-MAP overlay is running.",
+                      ),
+                    );
+                  } else {
+                    await DashBubble.instance.requestOverlayPermission();
+                  }
+                },
                 icon: const Icon(
                   Icons.play_circle_outline,
                 ),
@@ -42,7 +77,9 @@ class _MainViewState extends State<MainView> {
               IconButton(
                 padding: EdgeInsets.zero,
                 alignment: Alignment.center,
-                onPressed: () {},
+                onPressed: () {
+                  DashBubble.instance.stopBubble();
+                },
                 icon: const Icon(
                   Icons.pause_circle_outline,
                 ),
@@ -51,7 +88,7 @@ class _MainViewState extends State<MainView> {
           ),
         ),
         const SizedBox(
-          height: 500,
+          height: 550,
           width: 400,
           child: MyKakaoMap(),
         ),
@@ -80,12 +117,18 @@ class _MainViewState extends State<MainView> {
                                   child: Column(
                                     children: [
                                       IconButton(
-                                        onPressed: () {},
+                                        onPressed: () async {
+                                          print("포트홀 신고 클릭");
+                                          await Api()
+                                              .sendCurrentLocation("포트홀");
+                                          Api().sendCurrentLocation("포트홀");
+                                          notificationManager
+                                              .showNotification();
+                                        },
                                         icon: const Icon(
                                           Icons.build_outlined,
                                           size: 50,
                                         ),
-                                        tooltip: "포트홀 신고",
                                       ),
                                       const Text("포트홀"),
                                     ],
@@ -95,7 +138,12 @@ class _MainViewState extends State<MainView> {
                                   child: Column(
                                     children: [
                                       IconButton(
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          print("도로 막힘 신고 클릭");
+                                          Api().sendCurrentLocation("도로 막힘");
+                                          notificationManager
+                                              .showNotification();
+                                        },
                                         icon: const Icon(
                                           Icons.traffic_outlined,
                                           size: 50,
@@ -110,7 +158,12 @@ class _MainViewState extends State<MainView> {
                                   child: Column(
                                     children: [
                                       IconButton(
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          print("차량 사고 신고 클릭");
+                                          Api().sendCurrentLocation("차량 사고");
+                                          notificationManager
+                                              .showNotification();
+                                        },
                                         icon: const Icon(
                                           Icons.car_crash_outlined,
                                           size: 50,
@@ -131,7 +184,13 @@ class _MainViewState extends State<MainView> {
                 );
               },
               style: ButtonStyles.mainButtonStyle,
-              child: const Text("신고하기"),
+              child: const Text(
+                "Share",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         )
