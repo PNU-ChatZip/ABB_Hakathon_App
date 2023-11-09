@@ -1,4 +1,4 @@
-import 'package:d_map/screens/main_screen.dart';
+import 'package:d_map/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_map_plugin/kakao_map_plugin.dart';
@@ -35,6 +35,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    return const MainScreen();
+    return const LoginScreen();
   }
 }
