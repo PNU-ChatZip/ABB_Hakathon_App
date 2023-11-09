@@ -6,6 +6,7 @@ import 'package:kakao_map_plugin/kakao_map_plugin.dart';
 import 'package:d_map/widget/MyKakaoMap.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../model/RawRecord.dart';
 import '../model/location.dart';
 
 class Api {
@@ -103,5 +104,69 @@ class Api {
       throw Exception(
           'Failed to get record. Status Code: ${response.statusCode}');
     }
+  }
+
+  Future<List<Record>> getCompletedRecords() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    try {
+      String? userId = prefs.getString("id");
+      if (userId == null) throw Exception("fail to call userId");
+      var url = Uri.parse("$_baseUrl/get-mileage?userId=$userId");
+      http.Response response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        print('get completed records successfully.');
+        var jsonData = json.decode(utf8.decode(response.bodyBytes));
+        print(jsonData);
+
+        List<Record> records =
+            jsonData.map<Record>((json) => Record.fromJson(json)).toList();
+        records.forEach((record) => print(record.toString()));
+        return records;
+      } else {
+        print(
+            'Failed to get completed records. Status Code: ${response.statusCode}');
+        throw Exception(
+            'Failed to get completed records. Status Code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print(e.toString());
+      print("[Fail] API Call miss with getCompletedRecords()");
+    }
+
+    return [];
+  }
+
+  Future<List<RawRecord>> getRawRecords() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    try {
+      String? userId = prefs.getString("id");
+      if (userId == null) throw Exception("fail to call userId");
+      var url = Uri.parse("$_baseUrl/get-lat-log?userId=$userId");
+      http.Response response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        print('get getRawRecords successfully.');
+        var jsonData = json.decode(utf8.decode(response.bodyBytes));
+        print(jsonData);
+
+        List<RawRecord> records = jsonData
+            .map<RawRecord>((json) => RawRecord.fromJson(json))
+            .toList();
+        return records;
+      } else {
+        print(
+            'Failed to get getRawRecords. Status Code: ${response.statusCode}');
+        throw Exception(
+            'Failed to get getRawRecords. Status Code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print(e.toString());
+      print("[Fail] API Call miss with getRawRecords()");
+    }
+
+    return [];
   }
 }

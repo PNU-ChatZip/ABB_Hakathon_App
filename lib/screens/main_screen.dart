@@ -1,5 +1,6 @@
 import 'package:d_map/util/style.dart';
 import 'package:d_map/view/main_view.dart';
+import 'package:d_map/view/mileage_view.dart';
 import 'package:d_map/view/record_view.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +12,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIdx = 0;
+  int _currentIdx = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +28,23 @@ class _MainScreenState extends State<MainScreen> {
         items: [
           BottomNavigationBarItem(
               icon: Icon(
-                Icons.home,
+                Icons.monetization_on_outlined,
                 size: 30,
                 color: _currentIdx == 0 ? ColorStyles.mainColor : Colors.black,
+              ),
+              label: "MILEAGE"),
+          BottomNavigationBarItem(
+              icon: Icon(
+                Icons.home_outlined,
+                size: 30,
+                color: _currentIdx == 1 ? ColorStyles.mainColor : Colors.black,
               ),
               label: "HOME"),
           BottomNavigationBarItem(
               icon: Icon(
-                Icons.archive,
+                Icons.archive_outlined,
                 size: 30,
-                color: _currentIdx == 1 ? ColorStyles.mainColor : Colors.black,
+                color: _currentIdx == 2 ? ColorStyles.mainColor : Colors.black,
               ),
               label: "RECORD"),
         ],
@@ -50,10 +58,14 @@ class _MainScreenState extends State<MainScreen> {
 
     switch (_currentIdx) {
       case 0:
-        page = const MainView();
+        page = const MileageView();
         break;
 
       case 1:
+        page = const MainView();
+        break;
+
+      case 2:
         page = const RecordView();
         break;
     }
