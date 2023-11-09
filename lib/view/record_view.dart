@@ -1,6 +1,8 @@
+import 'package:d_map/api/api.dart';
 import 'package:d_map/util/style.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../model/Record.dart';
 
 class RecordView extends StatefulWidget {
   const RecordView({super.key});
@@ -13,10 +15,10 @@ class _RecordViewState extends State<RecordView> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: getRecords(),
+      future: Api().getRecords(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final List<String>? records = snapshot.data;
+          final List<Record>? records = snapshot.data;
           if (records == null || records.isEmpty) {
             return const Center(
               child: Text(
@@ -40,29 +42,30 @@ class _RecordViewState extends State<RecordView> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        TextButton(
-                          onPressed: () {
-                            print("click record #$i");
-                          },
+                        Expanded(
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              for (String detail in getRecordDetail(records[i]))
-                                Text(
-                                  detail,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
+                              for (String detail in prettyRecord(records[i]))
+                                Container(
+                                  padding: EdgeInsets.all(5),
+                                  child: Text(
+                                    detail,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.clip,
                                   ),
-                                ),
+                                )
                             ],
                           ),
                         ),
                         OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              removeRecord(i);
-                            });
-                            print("remove record #$i");
+                          onPressed: () async {
+                            await Api().removeRecord(records[i].id);
+                            print("remove record #${records[i].id}");
+                            setState(() {});
                           },
                           style: ButtonStyles.closeButtonStyle,
                           child: const Text(
@@ -100,24 +103,10 @@ class _RecordViewState extends State<RecordView> {
     );
   }
 
-  Future<List<String>> getRecords() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final List<String>? records = prefs.getStringList('records');
-    if (records == null) {
-      return [];
-    } else {
-      return records;
-    }
-  }
-
-  void removeRecord(int recordId) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final List<String> records = prefs.getStringList('records')!;
-    records.removeAt(recordId);
-    await prefs.setStringList('records', records);
-  }
-
-  List<String> getRecordDetail(String record) {
-    return record.split(",");
+  List<String> prettyRecord(Record record) {
+    List<String> stringList = record.toString().split(",");
+    stringList[1] = "신고 시각 : ${stringList[1]}";
+    stringList[2] = "위치 : ${stringList[2]}";
+    return stringList;
   }
 }
