@@ -32,62 +32,51 @@ class _RecordViewState extends State<RecordView> {
             children: [
               for (int i = 0; i < records.length; i++)
                 SizedBox(
-                  height: 100,
+                  height: 150,
                   width: 400,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          print("click record #$i");
-                        },
-                        child: Text(records[i]),
-                      ),
-                      OutlinedButton(
-                        onPressed: () {
-                          setState(() {
-                            removeRecord(i);
-                          });
-                          print("remove record #$i");
-                        },
-                        style: ButtonStyle(
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
+                  child: Card(
+                    surfaceTintColor: ColorStyles.mainColor,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            print("click record #$i");
+                          },
+                          child: Column(
+                            children: [
+                              for (String detail in getRecordDetail(records[i]))
+                                Text(
+                                  detail,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              removeRecord(i);
+                            });
+                            print("remove record #$i");
+                          },
+                          style: ButtonStyles.closeButtonStyle,
+                          child: const Text(
+                            "취소",
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.symmetric(
-                                vertical: 18.0, horizontal: 20.0),
-                          ),
-                          textStyle: MaterialStateProperty.all<TextStyle>(
-                            const TextStyle(fontSize: 16), // Set the font size
-                          ),
-                          foregroundColor: MaterialStateProperty.all<Color>(
-                            Colors.white,
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            Colors.white,
-                          ),
-                          side: MaterialStateProperty.all<BorderSide>(
-                            const BorderSide(
-                                color: Colors.redAccent,
-                                width: 2), // Set border color and width
-                          ),
                         ),
-                        child: const Text(
-                          "신고 취소",
-                          style: TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                )
+                ),
             ],
           );
         } else if (snapshot.hasError) {
@@ -126,5 +115,9 @@ class _RecordViewState extends State<RecordView> {
     final List<String> records = prefs.getStringList('records')!;
     records.removeAt(recordId);
     await prefs.setStringList('records', records);
+  }
+
+  List<String> getRecordDetail(String record) {
+    return record.split(",");
   }
 }

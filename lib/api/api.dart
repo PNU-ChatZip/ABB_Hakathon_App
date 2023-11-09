@@ -16,13 +16,15 @@ class Api {
     try {
       LatLng currentLocation = await getLocation();
       print("${currentLocation.latitude} ${currentLocation.longitude}");
-
+      String userId = prefs.getString("id")!;
       // Creating the location object.
       var loc = location(
-          currentLocation.latitude.toString(),
-          currentLocation.longitude.toString(),
-          type,
-          DateTime.now().toIso8601String());
+        currentLocation.latitude.toString(),
+        currentLocation.longitude.toString(),
+        type,
+        DateTime.now().toIso8601String(),
+        userId,
+      );
 
       // Creating the URL.
       Uri url = Uri.parse('$_baseUrl/send-location');
@@ -41,11 +43,9 @@ class Api {
         print('Location sent successfully.');
         final List<String>? records = prefs.getStringList('records');
         if (records == null) {
-          await prefs.setStringList('records',
-              ["${currentLocation.latitude} ${currentLocation.longitude}"]);
+          await prefs.setStringList('records', [loc.toString()]);
         } else {
-          records
-              .add("${currentLocation.latitude} ${currentLocation.longitude}");
+          records.add(loc.toString());
           await prefs.setStringList('records', records);
         }
       } else {

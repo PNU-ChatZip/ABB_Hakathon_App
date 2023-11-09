@@ -34,7 +34,7 @@ class _MainViewState extends State<MainView> {
             mainAxisSize: MainAxisSize.max,
             children: [
               const SizedBox(
-                width: 50,
+                width: 30,
               ),
               const Center(
                 child: Text(
@@ -72,6 +72,7 @@ class _MainViewState extends State<MainView> {
                 },
                 icon: const Icon(
                   Icons.play_circle_outline,
+                  size: 40,
                 ),
               ),
               IconButton(
@@ -82,6 +83,7 @@ class _MainViewState extends State<MainView> {
                 },
                 icon: const Icon(
                   Icons.pause_circle_outline,
+                  size: 40,
                 ),
               ),
             ],
@@ -121,7 +123,6 @@ class _MainViewState extends State<MainView> {
                                           print("포트홀 신고 클릭");
                                           await Api()
                                               .sendCurrentLocation("포트홀");
-                                          Api().sendCurrentLocation("포트홀");
                                           notificationManager
                                               .showNotification();
                                         },
