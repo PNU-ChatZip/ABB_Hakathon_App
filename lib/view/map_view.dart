@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:d_map/api/api.dart';
 import 'package:d_map/service/user_location.dart';
 import 'package:dash_bubble/dash_bubble.dart';
@@ -12,6 +13,8 @@ class MapView extends StatefulWidget {
 }
 
 class _MapViewState extends State<MapView> {
+  final player = AudioPlayer();
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -91,6 +94,7 @@ class _MapViewState extends State<MapView> {
   }
 
   void _onTap() async {
+    player.play(AssetSource('sounds/sound.mp3'));
     bool isSuccess = await Api.postReport();
     if (isSuccess) {
       print('Report success');
