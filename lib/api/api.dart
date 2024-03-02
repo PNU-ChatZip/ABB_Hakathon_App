@@ -1,172 +1,78 @@
 import 'dart:convert';
-import 'package:d_map/model/Record.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:d_map/model/coordinate.dart';
+import 'package:d_map/service/storage.dart';
+import 'package:d_map/service/user_location.dart';
 import 'package:http/http.dart' as http;
-import 'package:kakao_map_plugin/kakao_map_plugin.dart';
-import 'package:d_map/widget/MyKakaoMap.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../model/RawRecord.dart';
-import '../model/location.dart';
+import 'package:d_map/model/report.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Api {
-  final String _baseUrl = dotenv.get("URL");
+  static String baseUrl = dotenv.get('API_BASE_URL');
 
-  Future<void> sendCurrentLocation(String type) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
+  static Future<List<Report>> getReports() async {
     try {
-      LatLng currentLocation = await getLocation();
-      print("${currentLocation.latitude} ${currentLocation.longitude}");
-      String userId = prefs.getString("id")!;
-      // Creating the location object.
-      var loc = location(
-        currentLocation.latitude.toString(),
-        currentLocation.longitude.toString(),
-        type,
-        DateTime.now().toIso8601String(),
-        userId,
-      );
+      String? userId = await Storage.getString('name');
+      if (userId == null) {
+        throw Exception('Failed to load userId from storage');
+      }
+      final response = await http.get(Uri.parse('$baseUrl/get-location-userId?userId=$userId'));
+      print(response);
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(utf8.decode(response.bodyBytes));
+        return jsonData.map((e) => Report.fromJson(e)).toList();
+      } else {
+        throw Exception('Failed to load reports status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
 
-      // Creating the URL.
-      Uri url = Uri.parse('$_baseUrl/send-location');
-
-      // Sending the HTTP request.
-      http.Response response = await http.post(
-        url,
+  static Future<bool> postReport() async {
+    try {
+      String? userId = await Storage.getString('name');
+      if (userId == null) {
+        throw Exception('Failed to load userId from storage');
+      }
+      Coordinate? coordinate = await UserLocation().getUserLocation();
+      if (coordinate == null) {
+        throw Exception('Failed to load user location');
+      }
+      final response = await http.post(
+        Uri.parse('$baseUrl/send-location'),
         headers: {
           'Content-Type': 'application/json',
         },
-        body: jsonEncode(loc.toJson()),
+        body: jsonEncode({
+          'userId': userId,
+          'latitude': coordinate.latitude.toString(),
+          'longitude': coordinate.longitude.toString(),
+          'type': '포트홀',
+          'time': '${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}',
+        }),
       );
 
-      // Handling the response.
       if (response.statusCode == 200) {
-        print('Location sent successfully.');
-        final List<String>? records = prefs.getStringList('records');
-        if (records == null) {
-          await prefs.setStringList('records', [loc.toString()]);
-        } else {
-          records.add(loc.toString());
-          await prefs.setStringList('records', records);
-        }
+        return true;
       } else {
-        print('Failed to send location. Status Code: ${response.statusCode}');
-        throw Exception(
-            'Failed to send location. Status Code: ${response.statusCode}');
+        throw Exception('Failed to post report status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Failed to send location: $e');
-      // Here you would handle the error, e.g., showing a snackbar if this is a Flutter app.
-      // Since the context is not passed to this function, you cannot show a Snackbar directly here.
+      throw Exception(e.toString());
     }
   }
 
-  Future<List<Record>> getRecords() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
+  static Future<bool> deleteReport(int id) async {
     try {
-      String? userId = prefs.getString("id");
-      if (userId == null) throw Exception("fail to call userId");
-      var url = Uri.parse("$_baseUrl/get-location-userId?userId=$userId");
-      http.Response response = await http.get(url);
-
+      final response = await http.get(Uri.parse('$baseUrl/delete-location?id=$id'));
       if (response.statusCode == 200) {
-        print('get records successfully.');
-        var jsonData = json.decode(utf8.decode(response.bodyBytes));
-        print(jsonData);
-
-        List<Record> records =
-            jsonData.map<Record>((json) => Record.fromJson(json)).toList();
-        records.forEach((record) => print(record.toString()));
-        return records;
+        return true;
       } else {
-        print('Failed to get records. Status Code: ${response.statusCode}');
-        throw Exception(
-            'Failed to get records. Status Code: ${response.statusCode}');
+        throw Exception('Failed to delete report status code: ${response.statusCode}');
       }
     } catch (e) {
-      print(e.toString());
-      print("[Fail] API Call miss with getRecords()");
+      throw Exception(e.toString());
     }
-
-    return [];
-  }
-
-  Future<void> removeRecord(int id) async {
-    var url = Uri.parse("$_baseUrl/delete-location?id=$id");
-    http.Response response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      print('remove record successfully.');
-    } else {
-      print('Failed to remove record. Status Code: ${response.statusCode}');
-      throw Exception(
-          'Failed to get record. Status Code: ${response.statusCode}');
-    }
-  }
-
-  Future<List<Record>> getCompletedRecords() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    try {
-      String? userId = prefs.getString("id");
-      if (userId == null) throw Exception("fail to call userId");
-      var url = Uri.parse("$_baseUrl/get-mileage?userId=$userId");
-      http.Response response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        print('get completed records successfully.');
-        var jsonData = json.decode(utf8.decode(response.bodyBytes));
-        print(jsonData);
-
-        List<Record> records =
-            jsonData.map<Record>((json) => Record.fromJson(json)).toList();
-        records.forEach((record) => print(record.toString()));
-        return records;
-      } else {
-        print(
-            'Failed to get completed records. Status Code: ${response.statusCode}');
-        throw Exception(
-            'Failed to get completed records. Status Code: ${response.statusCode}');
-      }
-    } catch (e) {
-      print(e.toString());
-      print("[Fail] API Call miss with getCompletedRecords()");
-    }
-
-    return [];
-  }
-
-  Future<List<RawRecord>> getRawRecords() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    try {
-      String? userId = prefs.getString("id");
-      if (userId == null) throw Exception("fail to call userId");
-      var url = Uri.parse("$_baseUrl/get-lat-log?userId=$userId");
-      http.Response response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        print('get getRawRecords successfully.');
-        var jsonData = json.decode(utf8.decode(response.bodyBytes));
-        print(jsonData);
-
-        List<RawRecord> records = jsonData
-            .map<RawRecord>((json) => RawRecord.fromJson(json))
-            .toList();
-        return records;
-      } else {
-        print(
-            'Failed to get getRawRecords. Status Code: ${response.statusCode}');
-        throw Exception(
-            'Failed to get getRawRecords. Status Code: ${response.statusCode}');
-      }
-    } catch (e) {
-      print(e.toString());
-      print("[Fail] API Call miss with getRawRecords()");
-    }
-
-    return [];
   }
 }
