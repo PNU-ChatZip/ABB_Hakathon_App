@@ -292,10 +292,10 @@ packages:
     dependency: "direct main"
     description:
       name: kakao_map_plugin
-      sha256: b54c1dcca5d853407c2e0e426587f55ffd3a16eb7e6270493f79eebba34d0d47
+      sha256: "71dd52558773fa99604bc0d4f4ac0da4f88a52110a92d17d9a6525db1b94e7bf"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.2"
+    version: "0.2.5"
   leak_tracker:
     dependency: transitive
     description:

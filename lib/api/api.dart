@@ -17,7 +17,6 @@ class Api {
         throw Exception('Failed to load userId from storage');
       }
       final response = await http.get(Uri.parse('$baseUrl/get-location-userId?userId=$userId'));
-      print(response);
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(utf8.decode(response.bodyBytes));
         return jsonData.map((e) => Report.fromJson(e)).toList();
@@ -49,7 +48,7 @@ class Api {
           'latitude': coordinate.latitude.toString(),
           'longitude': coordinate.longitude.toString(),
           'type': '포트홀',
-          'time': '${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}',
+          'time': DateTime.now().toIso8601String(),
         }),
       );
 
@@ -70,6 +69,24 @@ class Api {
         return true;
       } else {
         throw Exception('Failed to delete report status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  static Future<List<Coordinate>> getCoordinates() async {
+    try {
+      String? userId = await Storage.getString('name');
+      if (userId == null) {
+        throw Exception('Failed to load userId from storage');
+      }
+      final response = await http.get(Uri.parse('$baseUrl/get-location-userId?userId=$userId'));
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(utf8.decode(response.bodyBytes));
+        return jsonData.map((e) => Coordinate.fromJson(e)).toList();
+      } else {
+        throw Exception('Failed to load coordinates status code: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception(e.toString());

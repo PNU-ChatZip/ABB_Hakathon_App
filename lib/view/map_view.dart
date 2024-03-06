@@ -1,5 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:d_map/api/api.dart';
+import 'package:d_map/model/coordinate.dart';
 import 'package:d_map/service/user_location.dart';
 import 'package:dash_bubble/dash_bubble.dart';
 import 'package:flutter/material.dart';
@@ -117,18 +118,33 @@ class MyKakaoMap extends StatefulWidget {
 }
 
 class _MyKakaoMapState extends State<MyKakaoMap> {
-  final _markers = <Marker>[];
+  final _markers = <Marker>{};
 
   @override
   void initState() {
     super.initState();
+    getMarkers();
+  }
+
+  void getMarkers() async {
+    final coordinates = await Api.getCoordinates();
+    _markers.clear();
+    for (Coordinate coordinate in coordinates) {
+      _markers.add(
+        Marker(
+          markerId: UniqueKey().toString(),
+          latLng: LatLng(coordinate.latitude, coordinate.longitude),
+        ),
+      );
+    }
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return KakaoMap(
       center: widget.center,
-      markers: _markers,
+      markers: _markers.toList(),
     );
   }
 }
